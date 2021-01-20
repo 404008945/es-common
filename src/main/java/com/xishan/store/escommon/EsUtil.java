@@ -129,7 +129,6 @@ public class EsUtil {
         List<T> data = new ArrayList<>();
         list.forEach(it -> data.add((T) JSON.parseObject(it.getSourceAsString(), clzz)));
         page.setData(data);
-        System.out.println(page);
         return page;
     }
 
