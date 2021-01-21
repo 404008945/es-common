@@ -75,8 +75,12 @@ public class EsUtil {
             SearchRequest searchRequest = new SearchRequest(indexName);
 
             SearchSourceBuilder sourceBuilder = new SearchSourceBuilder();
-            sourceBuilder.size(pageSize);
-            sourceBuilder.from(pageNo - 1);
+            if(pageSize != -1) {
+                sourceBuilder.size(pageSize);
+            }
+            if(pageNo != -1) {
+                sourceBuilder.from(pageNo - 1);
+            }
             sourceBuilder.query(boolQueryBuilder);
             searchRequest.source(sourceBuilder);
             SearchResponse searchResponse = client.search(searchRequest, RequestOptions.DEFAULT);
@@ -130,6 +134,22 @@ public class EsUtil {
         list.forEach(it -> data.add((T) JSON.parseObject(it.getSourceAsString(), clzz)));
         page.setData(data);
         return page;
+    }
+
+
+    public <T> List<T> listAll(String indexName, BoolQueryBuilder boolQueryBuilder,Class clzz) {
+        SearchResponse response = search(indexName, boolQueryBuilder, -1, -1);
+        //组装分页数据
+        EsPage page = new EsPage<T>();
+        page.setTotal(response.getHits().getTotalHits().value);
+        //利用fastJson进行转换
+        if (response.getHits().getHits() == null) {
+            return new ArrayList<>();
+        }
+        List<SearchHit> list = Arrays.asList(response.getHits().getHits());
+        List<T> data = new ArrayList<>();
+        list.forEach(it -> data.add((T) JSON.parseObject(it.getSourceAsString(), clzz)));
+        return data;
     }
 
     public boolean indexExists(String indexName) {
